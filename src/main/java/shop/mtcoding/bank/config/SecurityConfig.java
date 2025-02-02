@@ -13,6 +13,7 @@ import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.CorsConfigurationSource;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 import shop.mtcoding.bank.domain.user.UserEnum;
+import shop.mtcoding.bank.util.CustomResponseUtil;
 
 @Configuration  //IoC 컨테이너에 BCryptPasswordEncoder() 객체가 등록됨
 public class SecurityConfig {
@@ -46,6 +47,17 @@ public class SecurityConfig {
 //        // httpBasic은 브라우저가 팝업창을 이용해서 사용자 인증을 진행한다.
 //        http.httpBasic().disable();
 //
+//        //Exception 가로채기
+//        http.exceptionHandling().authenticationEntryPoint((request, response, authException) -> {
+//            ObjectMapper om  = new ObjectMapper();
+//            ResponseDto responseDto = new ResponseDto(-1, "권한없음", null);
+//            String responseBody = om,.writeValueAsString(responseDto);
+//
+//            response.setContentType("application/json; charset=utf-8");
+//            response.setStatus(403);
+//            response.getWriter().println("error");
+//    });
+//
 //        http.authorizeHttpRequests()
 //                .requestMatchers("/api/s/**").authenticated()
 //                .requestMatchers("api/admin/**").hasRole("" + UserEnum.ADMIN)
@@ -59,6 +71,7 @@ public class SecurityConfig {
     //위의 method 는 Spring Security 6.1 버전부터는 지원하지않아 아래방식으로 변경
     @Bean
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
+        log.debug("디버그 : filterChain 빈 등록됨");
         // HTTP 헤더 설정 (iframe 허용 안 함)
         http.headers(headers -> headers.frameOptions(frameOptions -> frameOptions.disable()));
 
@@ -78,6 +91,14 @@ public class SecurityConfig {
         // HTTP Basic 인증 비활성화
         http.httpBasic(httpBasic -> httpBasic.disable());
 
+
+
+        http.exceptionHandling(exceptionHandling ->
+                exceptionHandling.authenticationEntryPoint((request, response, authException) -> {
+                    CustomResponseUtil.unAuthentication(response, "로그인을 진행해주세요");
+                })
+        );
+
         // 권한 및 요청 경로 매핑
         http.authorizeHttpRequests(authorize -> authorize
                 .requestMatchers("/api/s/**").authenticated() // 인증 필요
@@ -89,6 +110,7 @@ public class SecurityConfig {
     }
 
     public CorsConfigurationSource corsConfiguration() {
+        log.debug("디버그 : filterChain cors 설정이 SecurityFilterChain에 등록됨");
         CorsConfiguration configuration = new CorsConfiguration();
         configuration.addAllowedHeader("*");
         configuration.addAllowedMethod("*");    //GET, POST, PUT, DELETE (JavaScript 요청 허용)
