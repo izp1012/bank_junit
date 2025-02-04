@@ -11,6 +11,9 @@ import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
 import shop.mtcoding.bank.domain.user.User;
 import shop.mtcoding.bank.domain.user.UserRepository;
+import shop.mtcoding.bank.dto.user.UserRequestDto;
+import shop.mtcoding.bank.dto.user.UserResponseDto;
+import shop.mtcoding.bank.dto.user.UserResponseDto;
 import shop.mtcoding.bank.handler.ex.CustomApiException;
 
 import java.util.Optional;
@@ -23,7 +26,7 @@ public class UserService {
     private final BCryptPasswordEncoder bCryptPasswordEncoder;
 
     @Transactional  //트랜잭션이 메서드 시작할떄, 시작되고, 종료될 떄 함께 종료
-    public JoinRespDto 회원가입(JoinReqDto joinReqDto){
+    public UserResponseDto.JoinRespDto 회원가입(UserRequestDto.JoinReqDto joinReqDto){
         // 1. 동일 유저 네임 존재 검사
         Optional<User> userOP = userRepository.findByUsername(joinReqDto.getUsername());
 
@@ -36,43 +39,6 @@ public class UserService {
         User userPS = userRepository.save(joinReqDto.toEntity(bCryptPasswordEncoder));
         
         // 3. dto 응답
-        return new JoinRespDto(userPS);
+        return new UserResponseDto.JoinRespDto(userPS);
     }
-
-    @ToString
-    @Getter
-    @Setter
-    public static class JoinRespDto{
-        private Long id;
-        private String username;
-        private String fullname;
-
-        public JoinRespDto(User user) {
-            this.id = user.getId();
-            this.username = user.getUsername();
-            this.fullname = user.getFullname();
-        }
-    }
-
-    @Getter
-    @Setter
-    public static class JoinReqDto{
-        //유효성 검사
-        private String username;
-        private String password;
-        private String email;
-        private String fullname;
-
-        public User toEntity(BCryptPasswordEncoder bCryptPasswordEncoder){
-            //유효성 검사
-            return User.builder()
-                    .username(username)
-                    .password(bCryptPasswordEncoder.encode(password))
-                    .email(email)
-                    .fullname(fullname)
-                    .build();
-        }
-    }
-
-
 }
