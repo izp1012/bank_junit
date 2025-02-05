@@ -28,6 +28,7 @@ public class User { //extends 시간설정(상속)
 
     @Column(nullable = false, length = 20)
     private String email;
+
     @Column(nullable = false, length = 20)
     private String fullname;
 
