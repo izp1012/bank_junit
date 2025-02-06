@@ -1,58 +1,51 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { Client } from "@stomp/stompjs";
 import SockJS from "sockjs-client";
+import {Stomp} from "@stomp/stompjs";
+
 const Chat = () => {
     const [messages, setMessages] = useState([]);
-    const [inputMessage, setInputMessage] = useState('');
+    const [input, setInput] = useState("");
     const [socket, setSocket] = useState(null);
     const messagesEndRef = useRef(null);
     const [stompClient, setStompClient] = useState(null);
 
     useEffect(() => {
-        // 웹소켓 연결
-        // const ws = new WebSocket('ws://localhost:8081/ws-chat');
-        const ws = new SockJS("http://localhost:8080/chat");
-        const client = new Client({
-            webSocketFactory: () => socket,
-            onConnect: () => {
-                console.log("Connected to WebSocket");
-                client.subscribe("/topic/chat", (message) => {
-                    setMessages((prevMessages) => [...prevMessages, message.body]);
-                });
-            },
-            debug: (str) => {
-                console.log(str);
-            },
-        });
+        // STOMP 클라이언트 생성
+        // const client = new Client({
+        //     brokerURL: "ws://localhost:8081/chat", // Spring Boot WebSocket 엔드포인트
+        //     reconnectDelay: 5000, // 자동 재연결 설정 (5초)
+        //     heartbeatIncoming: 4000,
+        //     heartbeatOutgoing: 4000
+        // });
+
+        const socket = new SockJS("http://localhost:8081/chat"); // 1️⃣ WebSocket 연결
+        const client = Stomp.over(socket);
+
+
+        client.onConnect = function (frame) {
+            console.log("✅ STOMP 연결 성공");
+
+            // 메시지 구독
+            client.subscribe("/topic/public", (message) => {
+                const receivedMessage = JSON.parse(message.body);
+                setMessages((prev) => [...prev, receivedMessage]);
+            });
+        };
+        client.onStompError = (frame) => {
+            console.error("❌ STOMP 오류 발생:")
+            console.log('Broker reported error: ' + frame.headers['message']);
+            console.log('Additional details: ' + frame.body);
+        };
+        client.debug = (str ) => {
+            console.debug("STOMP debug :", str)
+        }
+        client.activate();
         setStompClient(client);
-        client.activate(); // 연결 시작
-        setSocket(ws);
-
-        ws.onopen = () => {
-            console.log("✅ WebSocket 연결 성공");
-        };
-
-        ws.onmessage = (event) => {
-            console.log("📩 서버에서 받은 메시지:", event.data);
-            const message = JSON.parse(event.data);
-            setMessages(prev => [...prev, message]);
-        };
-
-        ws.onerror = (error) => {
-            console.error("❌ WebSocket 에러 발생:", error);
-        };
-
-        ws.onclose = () => {
-            console.log("🔌 WebSocket 연결 종료");
-        };
-
-
 
         return () => {
-            ws.close();
-            client.deactivate(); // 연결 종료}
-        }
-
+            client.deactivate();
+        };
     }, []);
 
     const scrollToBottom = () => {
@@ -61,16 +54,38 @@ const Chat = () => {
 
     useEffect(scrollToBottom, [messages]);
 
+    // const sendMessage = () => {
+    //     if (stompClient && stompClient.connected && input.trim()) {
+    //         const message = { sender: "User1", text: input };
+    //
+    //         // stompClient.publish({
+    //         //     destination: "/chat",
+    //         //     body: JSON.stringify(message),
+    //         // });
+    //         stompClient.send("/app/chat.sendMessage", {}, JSON.stringify({ text: input }));
+    //
+    //         setInput("");
+    //     } else {
+    //         console.error("❌ STOMP 연결이 활성화되지 않았습니다.");
+    //     }
+    // };
     const sendMessage = (e) => {
-        e.preventDefault();
-        if (inputMessage.trim() && socket) {
+        e.preventDefault(); // 폼 제출 시 새로고침 방지
+
+        if (stompClient && stompClient.connected && input.trim()) {
             const message = {
-                content: inputMessage,
-                sender: 'User', // 실제 사용 시 인증 정보 사용
+                sender: "User1",
+                content: input,
                 timestamp: new Date().toISOString()
             };
-            stompClient.send("/app/sendMessage", {}, message);
-            setInputMessage('');
+
+            stompClient.send("/app/chat.sendMessage", {}, JSON.stringify({ text: input }));
+
+            // 로컬 메시지 목록에 즉시 추가
+            setMessages(prevMessages => [...prevMessages, message]);
+            setInput("");
+        } else {
+            console.error("❌ STOMP 연결이 활성화되지 않았습니다.");
         }
     };
 
@@ -92,8 +107,8 @@ const Chat = () => {
                 <form onSubmit={sendMessage} style={styles.inputArea}>
                     <input
                         type="text"
-                        value={inputMessage}
-                        onChange={(e) => setInputMessage(e.target.value)}
+                        value={input}
+                        onChange={(e) => setInput(e.target.value)}
                         style={styles.inputField}
                         placeholder="메시지를 입력하세요..."
                     />

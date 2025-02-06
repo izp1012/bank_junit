@@ -1,5 +1,6 @@
 import React, {useEffect, useState} from 'react';
 import axios from 'axios';
+import {redirect} from "react-router-dom";
 <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
 const SignupForm = () => {
     // 상태 관리
@@ -66,6 +67,7 @@ const SignupForm = () => {
                 if (response.status === 201) {
                     alert('회원가입 성공!');
                     setFormData({ username: '', password: '', email: '', fullname : ''}); // 폼 초기화
+                    redirect('/login');
                 }
             } catch (error) {
 

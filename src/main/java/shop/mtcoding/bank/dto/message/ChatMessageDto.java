@@ -1,34 +1,22 @@
 package shop.mtcoding.bank.dto.message;
 
+import lombok.AllArgsConstructor;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
+
 import java.time.LocalDateTime;
 
+@Setter
+@Getter
+@NoArgsConstructor
 public class ChatMessageDto {
-    private String content;
     private String sender;
+    private String text;
     private LocalDateTime timestamp;
 
-    // Getters and Setters
-    public String getContent() {
-        return content;
-    }
-
-    public void setContent(String content) {
-        this.content = content;
-    }
-
-    public String getSender() {
-        return sender;
-    }
-
-    public void setSender(String sender) {
+    public ChatMessageDto(String sender, String text) {
         this.sender = sender;
-    }
-
-    public LocalDateTime getTimestamp() {
-        return timestamp;
-    }
-
-    public void setTimestamp(LocalDateTime timestamp) {
-        this.timestamp = timestamp;
+        this.text = text;
     }
 }

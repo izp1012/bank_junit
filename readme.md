@@ -50,4 +50,17 @@ module.exports = function(app) {
 -> 프론트엔드에서 '/api'로 요청을 보내면, 백엔드인 8080포트(=target)로 요청이 도착
 
 
+```sh
+App.js
+## Tailwind CSS 설치
+npm install -D tailwindcss postcss autoprefixer
+npx tailwindcss init
+
+### Radix UI 설치 (Button을 포함한 여러 컴포넌트에 필요)
+###npm install @radix-ui/react-button @radix-ui/react-tooltip
+
+# Shadcn UI와 관련된 구성 요소 (Lucide 아이콘 포함)
+npm install lucide-react clsx
+```
+
 
