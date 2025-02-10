@@ -71,7 +71,7 @@ public class UserControllerTest extends DummyObject {
         // when
         ResultActions resultActions = mockMvc.perform(post("/api/join").content(requestBody).contentType(MediaType.APPLICATION_JSON));
         String responseBody = resultActions.andReturn().getResponse().getContentAsString();
-        System.out.println("테스트 : " + responseBody);
+//        System.out.println("테스트 : " + responseBody);
 
 
         //then
