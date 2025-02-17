@@ -9,7 +9,8 @@ import org.springframework.web.socket.config.annotation.*;
 import shop.mtcoding.bank.handler.websocket.WebSocketHandler;
 
 @Configuration
-@EnableWebSocketMessageBroker
+@EnableWebSocketMessageBroker       // stomp 활성화
+@EnableWebSocket        			// webSocket 활성화
 @RequiredArgsConstructor
 public class WebSocketConfig implements WebSocketMessageBrokerConfigurer, WebSocketConfigurer {
 private final Logger logger = LoggerFactory.getLogger(getClass());
@@ -26,9 +27,6 @@ private final Logger logger = LoggerFactory.getLogger(getClass());
         registry.addEndpoint("/chat")  // WebSocket 연결 엔드포인트 설정
                 .setAllowedOriginPatterns("*")
                 .withSockJS();  // SockJS 지원 (브라우저 호환성)
-
-        registry.addEndpoint("/chat")
-                .setAllowedOriginPatterns("*");
     }
 
     @Override

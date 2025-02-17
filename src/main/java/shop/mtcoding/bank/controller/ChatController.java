@@ -11,6 +11,7 @@ public class ChatController {
     @MessageMapping("/chat.sendMessage")
     @SendTo("/topic/public")
     public ChatMessageDto sendMessage(ChatMessageDto message) {
+        System.out.println("📨 받은 메시지: " + message.getText() + " / From : " + message.getSender());
         return message;
     }
 }
