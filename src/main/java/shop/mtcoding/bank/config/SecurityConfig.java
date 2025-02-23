@@ -2,29 +2,40 @@ package shop.mtcoding.bank.config;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.boot.autoconfigure.http.client.HttpClientProperties;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.security.authentication.AuthenticationManager;
+import org.springframework.security.config.annotation.authentication.configuration.AuthenticationConfiguration;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
+import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
 import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.CorsConfigurationSource;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
+import shop.mtcoding.bank.config.jwt.JwtAuthenticationFilter;
 import shop.mtcoding.bank.domain.user.UserEnum;
 import shop.mtcoding.bank.util.CustomResponseUtil;
 
 @Configuration  //IoC 컨테이너에 BCryptPasswordEncoder() 객체가 등록됨
 public class SecurityConfig {
     private final Logger log = LoggerFactory.getLogger(getClass());
-    private final HttpClientProperties httpClientProperties;
+    private final AuthenticationConfiguration authenticationConfiguration;
 
-    public SecurityConfig(HttpClientProperties httpClientProperties) {
-        this.httpClientProperties = httpClientProperties;
+    public SecurityConfig(AuthenticationConfiguration authenticationConfiguration) {
+        this.authenticationConfiguration = authenticationConfiguration;
     }
-    
     // JWT 필터 등록이 필요함
+    public class CustomSecurityFilterManager extends AbstractHttpConfigurer<CustomSecurityFilterManager, HttpSecurity>{
+
+        @Override
+        public void configure(HttpSecurity builder) throws Exception {
+            AuthenticationManager authenticationManager = builder.getSharedObject(AuthenticationManager.class);
+            builder.addFilter(new JwtAuthenticationFilter(authenticationManager));
+            super.configure(builder);
+        }
+    }
 
 
     @Bean
@@ -33,6 +44,10 @@ public class SecurityConfig {
         return new BCryptPasswordEncoder();
     }
 
+    @Bean
+    public AuthenticationManager authenticationManager() throws Exception {
+        return authenticationConfiguration.getAuthenticationManager();
+    }
 
 //    @Bean
 //    public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
@@ -70,7 +85,7 @@ public class SecurityConfig {
     // JWT 서버를 만들 예정!! Session 사용안함.
     //위의 method 는 Spring Security 6.1 버전부터는 지원하지않아 아래방식으로 변경
     @Bean
-    public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
+    public SecurityFilterChain filterChain(HttpSecurity http, AuthenticationManager authenticationManager) throws Exception {
         log.debug("디버그 : filterChain 빈 등록됨");
         // HTTP 헤더 설정 (iframe 허용 안 함)
         http.headers(headers -> headers.frameOptions(frameOptions -> frameOptions.disable()));
@@ -91,6 +106,8 @@ public class SecurityConfig {
         // HTTP Basic 인증 비활성화
         http.httpBasic(httpBasic -> httpBasic.disable());
 
+        //필터 적용
+        http.addFilterAfter(new JwtAuthenticationFilter(authenticationManager), JwtAuthenticationFilter.class);
 
 
         http.exceptionHandling(exceptionHandling ->

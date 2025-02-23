@@ -5,6 +5,8 @@ import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.InternalAuthenticationServiceException;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
@@ -20,6 +22,7 @@ import java.io.IOException;
 
 public class JwtAuthenticationFilter extends UsernamePasswordAuthenticationFilter {
 
+    private final Logger logger = LoggerFactory.getLogger(getClass());
     private AuthenticationManager authenticationManager;
 
     public JwtAuthenticationFilter(AuthenticationManager authenticationManager) {
@@ -31,6 +34,7 @@ public class JwtAuthenticationFilter extends UsernamePasswordAuthenticationFilte
     @Override
     public Authentication attemptAuthentication(HttpServletRequest request, HttpServletResponse response) throws AuthenticationException {
 
+        logger.debug("디버그 : attemptAuthentication 호출됨");
         try{
             ObjectMapper om = new ObjectMapper();
             LoginReqDto loginReqDto = om.readValue(request.getInputStream(), LoginReqDto.class);
@@ -41,7 +45,8 @@ public class JwtAuthenticationFilter extends UsernamePasswordAuthenticationFilte
             // UserDetailService 의 loadUserByUsername 호출
             // JWT 쓴다 하더라도, 컨트롤러 진입하면 시큐리티 권한체크, 인증체크의 도움을 받을 수 있게 세션을 만든다.
             // 이 세션의 유효기간으 request 하고, response 하면 끝
-            Authentication authentication = authenticationManager.authenticate(authenticationToken);    //
+            Authentication authentication = authenticationManager.authenticate(authenticationToken);
+
             return authentication;
         }catch (Exception e){
             // authenticationEntryPoint에 걸린다.
@@ -52,6 +57,8 @@ public class JwtAuthenticationFilter extends UsernamePasswordAuthenticationFilte
     //return authtication 잘 작동하면 successfulAuthentication 메서드 호출된다.
     @Override
     protected void successfulAuthentication(HttpServletRequest request, HttpServletResponse response, FilterChain chain, Authentication authResult) throws IOException, ServletException {
+
+        logger.debug("디버그 : successfulAuthentication 호출됨");
 
         LoginUser loginUser = (LoginUser) authResult.getPrincipal();
         String jwToken = JwtProcess.create(loginUser);
