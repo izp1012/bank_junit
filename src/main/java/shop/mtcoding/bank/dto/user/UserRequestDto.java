@@ -1,6 +1,5 @@
 package shop.mtcoding.bank.dto.user;
 
-import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotEmpty;
 import jakarta.validation.constraints.Pattern;
 import jakarta.validation.constraints.Size;
@@ -13,6 +12,14 @@ import shop.mtcoding.bank.domain.user.UserEnum;
 @Getter
 @Setter
 public class UserRequestDto {
+
+    @Getter
+    @Setter
+    public static class LoginReqDto{
+        private String username;
+        private String password;
+    }
+
     @Getter
     @Setter
     public static class JoinReqDto{
