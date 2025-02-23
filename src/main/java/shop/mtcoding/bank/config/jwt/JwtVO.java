@@ -9,7 +9,7 @@ public interface JwtVO {
     // 이해를 위해 여기에 기입
     public static final String SECRET = "id";
 
-    public static final int EXPIRATION_TIME = 1000 * 60 * 60 * 24 * 7;
+    public static final int EXPIRATION_TIME = 1000 * 60 * 60 * 24 * 7;  //만료시간 1주일
 
     public static final String TOKEN_PREFIX = "Bearer ";
 

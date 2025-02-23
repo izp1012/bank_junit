@@ -8,7 +8,6 @@ import shop.mtcoding.bank.domain.user.User;
 
 import java.util.ArrayList;
 import java.util.Collection;
-import java.util.List;
 
 
 @RequiredArgsConstructor
@@ -20,7 +19,7 @@ public class LoginUser implements UserDetails {
     public Collection<? extends GrantedAuthority> getAuthorities() {
         Collection<GrantedAuthority> authorities = new ArrayList<>();
         authorities.add(() -> "ROLE_" + user.getRole());
-        return List.of();
+        return authorities;
     }
 
     @Override
